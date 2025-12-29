@@ -79,6 +79,16 @@ extism call plugin.wasm greet --input "Benjamin" --wasi
 > **Note**: Currently `wasip1` must be provided for all Go plug-ins even if they
 > don't need system access, however this will eventually be optional.
 
+As an alternative to TinyGo, you can build the plugin with the native Go toolchain using the `go build` command:
+
+```bash
+GOOS="wasip1" GOARCH="wasm" go build -o plugin.wasm -buildmode=c-shared main.go
+```
+
+TinyGo produces a very small WASM file—up to 5 times smaller than the standard toolchain. However, TinyGo has some [limitations](https://tinygo.org/docs/reference/lang-support/stdlib/).
+
+
+
 > **Note**: We also have a web-based, plug-in tester called the
 > [Extism Playground](https://playground.extism.org/)
 
