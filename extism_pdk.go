@@ -21,11 +21,27 @@ const (
 	LogError
 )
 
+// String returns the string representation of the LogLevel.
+func (l LogLevel) String() string {
+	switch l {
+	case LogInfo:
+		return "info"
+	case LogDebug:
+		return "debug"
+	case LogWarn:
+		return "warn"
+	case LogError:
+		return "error"
+	default:
+		return "unknown"
+	}
+}
+
 func load(offset extismPointer, buf []byte) {
 	length := len(buf)
 	chunkCount := length >> 3
 
-	for chunkIdx := 0; chunkIdx < chunkCount; chunkIdx++ {
+	for chunkIdx := range chunkCount {
 		i := chunkIdx << 3
 		binary.LittleEndian.PutUint64(buf[i:i+8], extismLoadU64(offset+extismPointer(i)))
 	}
@@ -43,7 +59,7 @@ func loadInput() []byte {
 
 	chunkCount := length >> 3
 
-	for chunkIdx := 0; chunkIdx < chunkCount; chunkIdx++ {
+	for chunkIdx := range chunkCount {
 		i := chunkIdx << 3
 		binary.LittleEndian.PutUint64(buf[i:i+8], extismInputLoadU64(extismPointer(i)))
 	}
@@ -61,7 +77,7 @@ func store(offset extismPointer, buf []byte) {
 	length := len(buf)
 	chunkCount := length >> 3
 
-	for chunkIdx := 0; chunkIdx < chunkCount; chunkIdx++ {
+	for chunkIdx := range chunkCount {
 		i := chunkIdx << 3
 		x := binary.LittleEndian.Uint64(buf[i : i+8])
 		extismStoreU64(offset+extismPointer(i), x)
@@ -278,10 +294,7 @@ func SetVarInt(key string, value int) {
 	// TODO: coordinate replacement of call to free based on SDK alignment
 	// defer keyMem.Free()
 
-	bytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bytes, uint64(value))
-
-	valMem := AllocateBytes(bytes)
+	valMem := AllocateBytes(binary.LittleEndian.AppendUint64(nil, uint64(value)))
 	// TODO: coordinate replacement of call to free based on SDK alignment
 	// defer valMem.Free()
 
