@@ -21,7 +21,7 @@ type CountVowelsOutput struct {
 	Vowels string `json:"vowels"`
 }
 
-//export count_vowels_typed
+//go:wasmexport count_vowels_typed
 func countVowelsTyped() int32 {
 	var input CountVowelsInput
 	if err := pdk.InputJSON(&input); err != nil {
@@ -33,7 +33,7 @@ func countVowelsTyped() int32 {
 	return 0
 }
 
-//export count_vowels_json_output
+//go:wasmexport count_vowels_json_output
 func countVowelsJSONOutput() int32 {
 	output := CountVowelsOutput{Count: 42, Total: 2.1e7, Vowels: "aAeEiIoOuUyY"}
 	err := pdk.OutputJSON(output)
@@ -44,7 +44,7 @@ func countVowelsJSONOutput() int32 {
 	return 0
 }
 
-//export count_vowels_roundtrip_json_mem
+//go:wasmexport count_vowels_roundtrip_json_mem
 func countVowelsJSONRoundtripMem() int32 {
 	a := CountVowelsOutput{Count: 42, Total: 2.1e7, Vowels: "aAeEiIoOuUyY"}
 	mem, err := pdk.AllocateJSON(&a)
@@ -70,7 +70,7 @@ func countVowelsJSONRoundtripMem() int32 {
 	return 0
 }
 
-//export count_vowels
+//go:wasmexport count_vowels
 func countVowels() int32 {
 	input := pdk.Input()
 
@@ -101,5 +101,3 @@ func countVowels() int32 {
 
 	return 0
 }
-
-func main() {}

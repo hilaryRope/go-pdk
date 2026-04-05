@@ -15,7 +15,8 @@ jobs:
         with:
           path: go-pdk
       - uses: ./go-pdk/.github/actions/libextism
-
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - run: cp go-pdk/go.sum . # Needed to get setup-go to work
 
       - name: Install Go
@@ -27,7 +28,7 @@ jobs:
       - name: Install TinyGo
         uses: acifani/setup-tinygo@v1.1.0
         with:
-          tinygo-version: 0.31.2
+          tinygo-version: 0.34.0
           binaryen-version: "116"
 
       - name: Compile example
