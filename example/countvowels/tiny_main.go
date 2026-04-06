@@ -3,11 +3,7 @@
 
 package main
 
-import (
-	"strconv"
-
-	"github.com/extism/go-pdk"
-)
+import "github.com/extism/go-pdk"
 
 // CountVowelsInput represents the JSON input provided by the host.
 type CountVowelsInput struct {
@@ -93,8 +89,21 @@ func countVowels() int32 {
 		thing = "<unset by host>"
 	}
 
-	output := `{"count": ` + strconv.Itoa(count) + `, "config": "` + thing + `", "a": "` + string(varA) + `"}`
-	mem := pdk.AllocateString(output)
+	output := struct {
+		Count  int    `json:"count"`
+		Config string `json:"config"`
+		A      string `json:"a"`
+	}{
+		Count:  count,
+		Config: thing,
+		A:      string(varA),
+	}
+
+	mem, err := pdk.AllocateJSON(output)
+	if err != nil {
+		pdk.SetError(err)
+		return -1
+	}
 
 	// zero-copy output to host
 	pdk.OutputMemory(mem)

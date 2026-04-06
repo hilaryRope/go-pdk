@@ -14,7 +14,16 @@ func httpGet() int32 {
 	req.SetHeader("some-name", "some-value")
 	req.SetHeader("another", "again")
 	// send the request, get response back (can check status on response via res.Status())
-	res, _ := req.Send()
+	res, err := req.Send()
+	if err != nil {
+		pdk.SetError(err)
+		return -1
+	}
+
+	if res.Status() != 200 {
+		pdk.SetErrorString("unexpected status code")
+		return -1
+	}
 
 	// zero-copy output to host
 	pdk.OutputMemory(res.Memory())

@@ -47,19 +47,25 @@ func (l LogLevel) String() string {
 	}
 }
 
+const (
+	chunkSize    = 8
+	chunkMask    = 7
+	chunkShift   = 3
+)
+
 func loadInput() []byte {
 	length := int(extismInputLength())
 	buf := make([]byte, length)
 
-	chunkCount := length >> 3
+	chunkCount := length >> chunkShift
 
 	for chunkIdx := range chunkCount {
-		i := chunkIdx << 3
-		binary.LittleEndian.PutUint64(buf[i:i+8], extismInputLoadU64(memory.ExtismPointer(i)))
+		i := chunkIdx << chunkShift
+		binary.LittleEndian.PutUint64(buf[i:i+chunkSize], extismInputLoadU64(memory.ExtismPointer(i)))
 	}
 
-	remainder := length & 7
-	remainderOffset := chunkCount << 3
+	remainder := length & chunkMask
+	remainderOffset := chunkCount << chunkShift
 	for index := remainderOffset; index < (remainder + remainderOffset); index++ {
 		buf[index] = extismInputLoadU8(memory.ExtismPointer(index))
 	}
@@ -237,8 +243,8 @@ func SetVar(key string, value []byte) {
 	)
 }
 
-// GetVarInt returns the int associated with `key` (or 0 if none).
-func GetVarInt(key string) int {
+// GetVarInt returns the int64 associated with `key` (or 0 if none).
+func GetVarInt(key string) int64 {
 	mem := AllocateString(key)
 	defer mem.Free()
 
@@ -251,11 +257,11 @@ func GetVarInt(key string) int {
 	value := make([]byte, clength)
 	memory.Load(offset, value)
 
-	return int(binary.LittleEndian.Uint64(value))
+	return int64(binary.LittleEndian.Uint64(value))
 }
 
-// SetVarInt sets the host variable associated with `key` to the `value` int.
-func SetVarInt(key string, value int) {
+// SetVarInt sets the host variable associated with `key` to the `value` int64.
+func SetVarInt(key string, value int64) {
 	keyMem := AllocateString(key)
 	// TODO: coordinate replacement of call to free based on SDK alignment
 	// defer keyMem.Free()
