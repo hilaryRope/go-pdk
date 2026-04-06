@@ -4,9 +4,6 @@
 package main
 
 import (
-	// "fmt"
-	"strconv"
-
 	"github.com/extism/go-pdk"
 )
 
@@ -103,8 +100,22 @@ func countVowels() int32 {
 		thing = "<unset by host>"
 	}
 
-	output := `{"count": ` + strconv.Itoa(count) + `, "config": "` + thing + `", "a": "` + string(varA) + `"}`
-	mem := pdk.AllocateString(output)
+	// Use proper JSON construction instead of string concatenation
+	output := struct {
+		Count  int    `json:"count"`
+		Config string `json:"config"`
+		A      string `json:"a"`
+	}{
+		Count:  count,
+		Config: thing,
+		A:      string(varA),
+	}
+
+	mem, err := pdk.AllocateJSON(output)
+	if err != nil {
+		pdk.SetError(err)
+		return -1
+	}
 
 	// zero-copy output to host
 	pdk.OutputMemory(mem)

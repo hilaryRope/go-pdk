@@ -2,17 +2,23 @@ package memory
 
 import "encoding/binary"
 
+const (
+	chunkSize  = 8
+	chunkMask  = 7
+	chunkShift = 3
+)
+
 func Load(offset ExtismPointer, buf []byte) {
 	length := len(buf)
-	chunkCount := length >> 3
+	chunkCount := length >> chunkShift
 
 	for chunkIdx := 0; chunkIdx < chunkCount; chunkIdx++ {
-		i := chunkIdx << 3
-		binary.LittleEndian.PutUint64(buf[i:i+8], ExtismLoadU64(offset+ExtismPointer(i)))
+		i := chunkIdx << chunkShift
+		binary.LittleEndian.PutUint64(buf[i:i+chunkSize], ExtismLoadU64(offset+ExtismPointer(i)))
 	}
 
-	remainder := length & 7
-	remainderOffset := chunkCount << 3
+	remainder := length & chunkMask
+	remainderOffset := chunkCount << chunkShift
 	for index := remainderOffset; index < (remainder + remainderOffset); index++ {
 		buf[index] = ExtismLoadU8(offset + ExtismPointer(index))
 	}
@@ -20,16 +26,16 @@ func Load(offset ExtismPointer, buf []byte) {
 
 func Store(offset ExtismPointer, buf []byte) {
 	length := len(buf)
-	chunkCount := length >> 3
+	chunkCount := length >> chunkShift
 
 	for chunkIdx := 0; chunkIdx < chunkCount; chunkIdx++ {
-		i := chunkIdx << 3
-		x := binary.LittleEndian.Uint64(buf[i : i+8])
+		i := chunkIdx << chunkShift
+		x := binary.LittleEndian.Uint64(buf[i : i+chunkSize])
 		ExtismStoreU64(offset+ExtismPointer(i), x)
 	}
 
-	remainder := length & 7
-	remainderOffset := chunkCount << 3
+	remainder := length & chunkMask
+	remainderOffset := chunkCount << chunkShift
 	for index := remainderOffset; index < (remainder + remainderOffset); index++ {
 		ExtismStoreU8(offset+ExtismPointer(index), buf[index])
 	}
@@ -61,7 +67,6 @@ func (m *Memory) Store(data []byte) {
 // Free frees the host memory block.
 func (m *Memory) Free() {
 	ExtismFree(m.offset)
-
 }
 
 // Length returns the number of bytes in the host memory block.
